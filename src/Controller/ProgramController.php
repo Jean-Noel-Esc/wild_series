@@ -4,6 +4,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Episode;
 use App\Entity\Program;
 use App\Entity\Season;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -34,15 +35,12 @@ class ProgramController extends AbstractController
      *
      * @Route("/show/{id<^[0-9]+$>}", name="show")
      */
-    public function show(int $id): Response
+    public function show(Program $program): Response
     {
-        $program = $this->getDoctrine()
-            ->getRepository(Program::class)
-            ->findOneBy(['id' => $id])
-        ;
+        //$program = $this->getDoctrine()->getRepository(Program::class)->findOneBy(['id' => $id]);
         if (!$program) {
             throw $this->createNotFoundException(
-                'No program with id : '.$id.' found in program\'s table.'
+                'No program with id : '.$program->getId().' found in program\'s table.'
             );
         }
         $seasons = $program->getSeasons();
@@ -57,13 +55,24 @@ class ProgramController extends AbstractController
      *
      * @Route("/{programId}/seasons/{seasonId}", name="season_show")
      */
-    public function showSeason(int $programId, int $seasonId)
+    public function showSeason(Program $programId, Season $seasonId)
     {
-        $program = $this->getDoctrine()->getRepository(Program::class)->findOneBy(['id' => $programId]);
-        $season = $this->getDoctrine()->getRepository(Season::class)->findOneBy(['id' => $seasonId]);
-
         return $this->render('Program/season_show.html.twig', [
-            'program' => $program, 'season' => $season,
+            'program' => $programId, 'season' => $seasonId,
         ]);
+    }
+
+    /**
+     * @Route("{programId}/seasons/{seasonId}/episodes/{episodeId}",
+     * name="episode_show",
+     * requirements={"program"="\d+", "season"="\d+", "episode"="\d+"},
+     * methods={"GET"})
+     */
+    public function showEpisode(Program $programId, Season $seasonId, Episode $episodeId)
+    {
+        return $this->render(
+            'Program/episode_show.html.twig',
+            ['program' => $programId, 'season' => $seasonId, 'episode' => $episodeId]
+        );
     }
 }
