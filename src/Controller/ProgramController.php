@@ -7,7 +7,9 @@ namespace App\Controller;
 use App\Entity\Episode;
 use App\Entity\Program;
 use App\Entity\Season;
+use App\Form\ProgramType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -28,6 +30,40 @@ class ProgramController extends AbstractController
         $programs = $this->getDoctrine()->getRepository(Program::class)->findAll();
 
         return $this->render('Program/index.html.twig', ['programs' => $programs]);
+    }
+
+    /**
+     * @Route("/new",
+     * name="new")
+     */
+    public function new(Request $request)
+    {
+        $program = new Program();
+
+        $form = $this->createForm(ProgramType::class, $program);
+
+        $form->handleRequest($request);
+
+        // Was the form submitted ?
+        if ($form->isSubmitted()) {
+            // Deal with the submitted data
+            // Get the Entity Manager
+            $entityManager = $this->getDoctrine()->getManager();
+
+            // Persist Category Object
+            $entityManager->persist($program);
+
+            // Flush the persisted object
+            $entityManager->flush();
+
+            // Finally redirect to categories list
+            return $this->redirectToRoute('program_index');
+        }
+
+        // Render the form
+        return $this->render('Program/new.html.twig', [
+            'form' => $form->createView(),
+        ]);
     }
 
     /**
